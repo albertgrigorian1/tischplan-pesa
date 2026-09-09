@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Gästeliste Pesa: Zusagen, Startpunkt, Auto, Info.">
+<meta name="description" content="Gästeliste Pesa: Zusagen, Startpunkt, Auto, Ablauf.">
 <title>Gästeliste Pesa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -186,7 +186,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
           <th>Startet in</th>
           <th>Ankunft</th>
           <th>Auto</th>
-          <th>Info</th>
+          <th>Über Ablauf informiert</th>
           <th>Notiz</th>
           <th>Tisch</th>
           <th></th>
@@ -617,7 +617,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
       tdT.appendChild(time); tr.appendChild(tdT);
 
       // Auto + Info
-      [["car","Braucht Auto"],["informed","Über Ablauf informiert"]].forEach(function(pair){
+      [["car","Braucht ein Auto"],["informed","Über den Ablauf informiert"]].forEach(function(pair){
         var td = document.createElement("td");
         td.className = "tight";
         var box = document.createElement("div");
@@ -678,7 +678,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
   /* ---------------- Export ---------------- */
 
   function csv(){
-    var rows = [["Name","Zusage","Startet in","Ankunft","Braucht Auto","Informiert","Notiz","Tisch"]];
+    var rows = [["Name","Zusage","Startet in","Ankunft","Braucht Auto","Über Ablauf informiert","Notiz","Tisch"]];
     sortedIds().forEach(function(id){
       var g = state.guests[id];
       rows.push([g.name, rsvpLabel[g.rsvp], (g.start ? startLabel[g.start] : ""), g.startTime, g.car ? "ja" : "", g.informed ? "ja" : "",
