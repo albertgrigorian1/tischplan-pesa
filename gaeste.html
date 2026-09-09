@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Gästeliste Pesa: Zusagen, Treffpunkt, Auto, Info.">
+<title>Gästeliste Pesa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#FAF6F2; --surface:#FFFFFF; --surface-2:#F2EAE3;
+  --line:#E4D9CF; --line-strong:#CBBAAD;
+  --ink:#241C20; --ink-2:#6C5C61; --ink-3:#8F7F84;
+  --accent:#B0521F; --accent-soft:#F7E4D6; --on-accent:#FFF8F3;
+  --ok:#1C6A5E; --ok-soft:#DCEDE9;
+  --warn:#8A5312; --warn-soft:#FBEBD8;
+  --harsi:#9A3A59; --harsi-soft:#F8E1E8;
+  --pesa:#1C6A5E; --pesa-soft:#DCEDE9;
+  --other:#565C72; --other-soft:#E7E8F0;
+  --focus:#B0521F; --shadow:0 1px 2px rgba(36,28,32,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#161114; --surface:#1F191D; --surface-2:#2A2227;
+    --line:#3A3036; --line-strong:#514349;
+    --ink:#F3EAE4; --ink-2:#B6A49F; --ink-3:#8E7C79;
+    --accent:#E08A52; --accent-soft:#3A2517; --on-accent:#1B1114;
+    --ok:#6ECCBA; --ok-soft:#122F29;
+    --warn:#E0A257; --warn-soft:#33240F;
+    --harsi:#E98CA6; --harsi-soft:#3B1F28;
+    --pesa:#6ECCBA; --pesa-soft:#122F29;
+    --other:#AFB4C9; --other-soft:#262833;
+    --focus:#E08A52; --shadow:0 1px 2px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#161114; --surface:#1F191D; --surface-2:#2A2227;
+  --line:#3A3036; --line-strong:#514349;
+  --ink:#F3EAE4; --ink-2:#B6A49F; --ink-3:#8E7C79;
+  --accent:#E08A52; --accent-soft:#3A2517; --on-accent:#1B1114;
+  --ok:#6ECCBA; --ok-soft:#122F29;
+  --warn:#E0A257; --warn-soft:#33240F;
+  --harsi:#E98CA6; --harsi-soft:#3B1F28;
+  --pesa:#6ECCBA; --pesa-soft:#122F29;
+  --other:#AFB4C9; --other-soft:#262833;
+  --focus:#E08A52; --shadow:0 1px 2px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1440px;margin:0 auto;padding:26px 22px 90px}
+
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+h1{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:32px;line-height:1.05;margin:0;letter-spacing:-.01em}
+.sub{margin:6px 0 0;color:var(--ink-2);font-size:14px;max-width:64ch}
+.sub a{color:var(--accent)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);padding:9px 14px;transition:background .12s,border-color .12s,color .12s}
+button:hover{background:var(--surface-2)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:500}
+button.primary:hover{filter:brightness(1.06);background:var(--accent)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:7px;padding:7px 9px;width:100%}
+input::placeholder{color:var(--ink-3)}
+
+.bar{margin-top:20px;display:flex;flex-wrap:wrap;align-items:center;gap:0 22px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px 0}
+.stat{display:flex;align-items:baseline;gap:8px;padding-right:22px;border-right:1px solid var(--line)}
+.stat:last-of-type{border-right:0}
+.stat b{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.stat.flag b,.stat.flag span{color:var(--warn)}
+.savestate{margin-left:auto;font-size:12.5px;color:var(--ink-3);display:flex;align-items:center;gap:7px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.savestate[data-state="saving"] .dot{background:var(--accent)}
+.savestate[data-state="local"] .dot{background:var(--warn)}
+
+/* ---------- Eingabe + Filter ---------- */
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.addbox{display:flex;gap:8px;flex:1 1 340px;max-width:520px}
+.addbox button{flex:none}
+.search{flex:0 1 220px}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.filters button{padding:6px 11px;font-size:13px;border-radius:16px}
+.filters button.on{background:var(--ink);border-color:var(--ink);color:var(--ground);font-weight:500}
+.hint{margin:8px 0 0;font-size:12px;color:var(--ink-3)}
+
+/* ---------- Tabelle ---------- */
+.tablewrap{margin-top:14px;overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:var(--shadow)}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:820px;font-size:14px}
+th{
+  position:sticky;top:0;z-index:2;text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:600;background:var(--surface-2);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;
+}
+td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:var(--surface-2)}
+td.tight{width:1%;white-space:nowrap}
+td.mid{width:150px}
+td.wide{width:auto;min-width:240px}
+.nm input{font-weight:600;border-color:transparent;background:transparent}
+.nm input:hover,.nm input:focus{border-color:var(--line-strong);background:var(--surface)}
+td input[type=text]{border-color:transparent;background:transparent}
+td input[type=text]:hover,td input[type=text]:focus{border-color:var(--line-strong);background:var(--surface)}
+
+
+select.rsvp{width:118px;padding:6px 8px}
+input.tm{width:106px;padding:6px 8px;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+input.tm.off{color:var(--ink-3);border-color:transparent;background:transparent}
+input.tm.off:hover,input.tm:focus{border-color:var(--line-strong);background:var(--surface)}
+tr[data-rsvp="no"] td{opacity:.55}
+tr[data-rsvp="no"] .nm input{text-decoration:line-through}
+
+.check{display:flex;justify-content:center}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;margin:0}
+
+.seatcell{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-2);white-space:nowrap}
+.seatcell.none{color:var(--ink-3)}
+.del{border:0;background:transparent;color:var(--ink-3);font-size:15px;line-height:1;padding:5px 7px;border-radius:6px;cursor:pointer}
+.del:hover{background:var(--warn-soft);color:var(--warn)}
+.del.arm{background:var(--warn);color:var(--surface);font-size:11.5px;font-weight:600;padding:5px 9px}
+
+.empty{margin:34px 0;text-align:center;color:var(--ink-2)}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--ground);border-radius:10px;padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px;font-size:13.5px;box-shadow:0 8px 28px rgba(0,0,0,.28);z-index:50;max-width:92vw}
+.toast[hidden]{display:none}
+.toast button{background:transparent;border:1px solid rgba(255,255,255,.32);color:var(--ground);padding:5px 11px;font-size:13px}
+.toast button:hover{background:rgba(255,255,255,.14)}
+
+dialog{border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);color:var(--ink);padding:18px;max-width:min(680px,92vw);width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(20,14,17,.45)}
+dialog h2{font-family:Fraunces,Georgia,serif;font-size:20px;margin:0 0 4px}
+dialog p{margin:0 0 12px;color:var(--ink-2);font-size:13.5px}
+dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line-strong);border-radius:8px;padding:10px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Gästeliste Pesa</h1>
+      <p class="sub">Wer kommt, wie er herkommt und was noch offen ist. Alle Namen von hier erscheinen im <a href="./">Tischplan Pesa</a> und können dort gesetzt werden.</p>
+    </div>
+    <div class="actions">
+      <button id="exportCsv">CSV exportieren</button>
+      <button id="exportTxt">Liste als Text</button>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="stat"><b id="sAll">0</b><span>Gäste</span></div>
+    <div class="stat"><b id="sYes">0</b><span>zugesagt</span></div>
+    <div class="stat"><b id="sOpen">0</b><span>offen</span></div>
+    <div class="stat"><b id="sHarsi">0</b><span>zu Pesa</span></div>
+    <div class="stat flag" id="sCarWrap" hidden><b id="sCar">0</b><span>brauchen Auto</span></div>
+    <div class="stat flag" id="sInfoWrap" hidden><b id="sInfo">0</b><span>nicht informiert</span></div>
+    <div class="stat"><b id="sSeat">0</b><span>am Tisch</span></div>
+    <div class="savestate" id="saveState" data-state="idle"><span class="dot"></span><span id="saveText">Bereit</span></div>
+  </div>
+
+  <div class="tools">
+    <div class="addbox">
+      <input id="guestInput" placeholder="Name eingeben — mehrere mit Komma oder Zeilenumbruch" autocomplete="off">
+      <button id="guestAdd" class="primary">Aufnehmen</button>
+    </div>
+    <input id="search" class="search" placeholder="Suchen …" autocomplete="off">
+    <div class="filters" id="filters"></div>
+  </div>
+  <p class="hint">Änderungen werden sofort gespeichert. Doppelte Namen werden beim Aufnehmen erkannt.</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Zusage</th>
+          <th>Pesa</th>
+          <th>Ankunft</th>
+          <th>Auto</th>
+          <th>Info</th>
+          <th>Notiz</th>
+          <th>Tisch</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <p class="empty" id="empty" hidden>Noch keine Gäste. Oben den ersten Namen eintragen.</p>
+</div>
+
+<div class="toast" id="toast" hidden>
+  <span id="toastText"></span>
+  <button id="toastUndo">Rückgängig</button>
+</div>
+
+<dialog id="exportDlg">
+  <h2 id="dlgTitle">Export</h2>
+  <p>Der Download ist hier nicht verfügbar — Text markieren und kopieren.</p>
+  <textarea id="dlgText" readonly></textarea>
+  <div class="dialog-actions">
+    <button id="dlgCopy">Kopieren</button>
+    <button id="dlgClose" class="primary">Schließen</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  "use strict";
+
+  var GH = {
+    repo: "albertgrigorian1/hochzeitskonvoi-daten",
+    path: "gaeste-pesa.json",
+    seatPath: "tische-pesa.json",
+    branch: "main",
+    k: ["RlpHN1ZBMTFfdGFwX2J1aHRpZw==",
+        "YzlDTF95eEpjODNVY0RjbVEwSQ==",
+        "SzZDRTRybU1JdTU1Q0NnQUh2WQ==",
+        "ZUFGRU5RNDAybzhjR3hvRnU0aA==",
+        "N0ZPeVM5NUJZMzYzRVhSQ08="]
+  };
+
+  var RSVP = [{k:"open",l:"offen"},{k:"yes",l:"zugesagt"},{k:"no",l:"abgesagt"}];
+  var rsvpLabel = {open:"offen", yes:"zugesagt", no:"abgesagt"};
+
+  var FILTERS = [
+    {k:"all",   l:"Alle",             fn:function(){ return true; }},
+    {k:"harsi", l:"Pesa",             fn:function(g){ return g.harsi; }},
+    {k:"car",   l:"Braucht Auto",     fn:function(g){ return g.car; }},
+    {k:"info",  l:"Nicht informiert", fn:function(g){ return !g.informed; }},
+    {k:"noseat",l:"Ohne Tisch",       fn:function(g,s){ return !s; }},
+    {k:"open",  l:"Zusage offen",     fn:function(g){ return g.rsvp === "open"; }}
+  ];
+
+  var $ = function(s){ return document.querySelector(s); };
+  var tbody = $("#tbody"), saveState = $("#saveState"), saveText = $("#saveText");
+
+  var state = {guests:{}};
+  var seats = {};            // guestId -> "T02 · 4"   (nur gelesen)
+  var store = null, filter = "all", search = "", undoSnap = null, toastTimer = null;
+
+  function norm(s){ return String(s||"").trim().replace(/\s+/g," "); }
+  function key(s){ return norm(s).toLowerCase(); }
+  function gid(){ return "g" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function setSave(st, t){ saveState.setAttribute("data-state", st); saveText.textContent = t; }
+
+  function normalizeGuest(g){
+    g = g || {};
+    return {
+      name: norm(g.name),
+      harsi: g.harsi !== undefined ? !!g.harsi : (g.group === "harsi"),
+      harsiTime: /^\d{2}:\d{2}$/.test(g.harsiTime || "") ? g.harsiTime : "",
+      rsvp: rsvpLabel[g.rsvp] ? g.rsvp : "open",
+      car: !!g.car,
+      informed: !!g.informed,
+      note: String(g.note || "")
+    };
+  }
+  function normalizeState(s){
+    var out = {guests:{}};
+    Object.keys((s && s.guests) || {}).forEach(function(id){
+      var g = normalizeGuest(s.guests[id]);
+      if(g.name) out.guests[id] = g;
+    });
+    return out;
+  }
+
+  /* ---------------- Speicher ---------------- */
+
+  function b64encode(str){
+    var bytes = new TextEncoder().encode(str), bin = "";
+    for(var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function b64decode(b64){
+    var bin = atob(String(b64).replace(/\s/g,"")), bytes = new Uint8Array(bin.length);
+    for(var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function token(){
+    try { return GH.k.map(function(p){ return b64decode(p).split("").reverse().join(""); }).join(""); }
+    catch(e){ return ""; }
+  }
+  function clock(){
+    var d = new Date();
+    return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  }
+
+  function githubStore(){
+    var tok = token();
+    var base = "https://api.github.com/repos/" + GH.repo + "/contents/";
+    var sha = null, writing = false, dirty = false, timer = null;
+
+    function headers(extra){
+      var h = {"Accept":"application/vnd.github+json","Authorization":"Bearer " + tok,
+               "X-GitHub-Api-Version":"2022-11-28"};
+      if(extra) Object.keys(extra).forEach(function(k){ h[k] = extra[k]; });
+      return h;
+    }
+    function fail(r){
+      if(r.status === 401) return "Token ungültig oder abgelaufen";
+      if(r.status === 403) return "Token hat keine Schreibrechte";
+      if(r.status === 404) return "Repository oder Branch nicht gefunden";
+      return "GitHub meldet HTTP " + r.status;
+    }
+    function get(path){
+      return fetch(base + encodeURIComponent(path) + "?ref=" + encodeURIComponent(GH.branch) + "&_=" + Date.now(),
+                   {headers:headers(), cache:"no-store"})
+        .then(function(r){
+          if(r.status === 404) return null;
+          if(!r.ok) throw new Error(fail(r));
+          return r.json().then(function(j){
+            var raw = j.content ? b64decode(j.content).trim() : "";
+            return {sha:j.sha, data: raw ? JSON.parse(raw) : {}};
+          });
+        });
+    }
+    function pullSeats(){
+      return get(GH.seatPath).then(function(res){
+        seats = {};
+        if(!res || !res.data || !res.data.tables) return;
+        var tables = res.data.tables;
+        Object.keys(tables).forEach(function(tid){
+          var t = tables[tid] || {};
+          (t.order || []).forEach(function(g, i){
+            if(g) seats[g] = (t.name || tid) + " · Platz " + (i + 1);
+          });
+        });
+      }).catch(function(){});
+    }
+    function pull(){
+      return get(GH.path).then(function(res){
+        if(res){ sha = res.sha; return normalizeState(res.data); }
+        sha = null;
+        // Erstbefüllung: Namen übernehmen, die bisher im Tischplan standen.
+        return get(GH.seatPath).then(function(t){
+          var seed = {guests:{}};
+          if(t && t.data && t.data.guests){
+            Object.keys(t.data.guests).forEach(function(id){
+              seed.guests[id] = normalizeGuest(t.data.guests[id]);
+            });
+          }
+          return normalizeState(seed);
+        }, function(){ return {guests:{}}; });
+      });
+    }
+    function push(){
+      if(writing){ dirty = true; return; }
+      writing = true; dirty = false;
+      setSave("saving","Wird gespeichert …");
+      var payload = {message:"Gästeliste aktualisiert", branch:GH.branch,
+                     content:b64encode(JSON.stringify(state, null, 1))};
+      if(sha) payload.sha = sha;
+      return fetch(base + encodeURIComponent(GH.path),
+                   {method:"PUT", headers:headers({"Content-Type":"application/json"}), body:JSON.stringify(payload)})
+        .then(function(r){
+          if(r.status === 409 || r.status === 422){
+            dirty = true;
+            return get(GH.path).then(function(res){ if(res) sha = res.sha; });
+          }
+          if(!r.ok) throw new Error(fail(r));
+          return r.json().then(function(j){ sha = j.content && j.content.sha; synced(); });
+        })
+        .catch(function(e){ setSave("local","Nicht gespeichert: " + e.message); })
+        .then(function(){ writing = false; if(dirty) push(); });
+    }
+    function synced(){ setSave("idle","Gemeinsame Liste · Stand " + clock()); }
+    function poll(){
+      if(writing || dirty || timer) return;
+      Promise.all([pull(), pullSeats()]).then(function(r){
+        state = r[0]; render(); synced();
+      }).catch(function(e){ setSave("local","Kein Abgleich: " + e.message); });
+    }
+    return {
+      start:function(){
+        setSave("saving","Liste wird geladen …");
+        Promise.all([pull(), pullSeats()]).then(function(r){
+          state = r[0]; render(); synced();
+          if(!sha && Object.keys(state.guests).length) push();   // übernommene Namen sichern
+        }).catch(function(e){
+          setSave("local","Verbindung fehlgeschlagen: " + e.message); render();
+        });
+        setInterval(poll, 12000);
+        document.addEventListener("visibilitychange", function(){ if(!document.hidden) poll(); });
+        window.addEventListener("focus", poll);
+      },
+      save:function(){
+        if(timer) clearTimeout(timer);
+        setSave("saving","Wird gespeichert …");
+        timer = setTimeout(function(){ timer = null; push(); }, 1200);
+      }
+    };
+  }
+
+  function localStore(){
+    var KEY = "gaesteliste.pesa.v1";
+    return {
+      start:function(){
+        try { var raw = localStorage.getItem(KEY); if(raw) state = normalizeState(JSON.parse(raw)); } catch(e){}
+        setSave("local","Auf diesem Gerät gespeichert"); render();
+      },
+      save:function(){
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+        setSave("local","Auf diesem Gerät gespeichert");
+      }
+    };
+  }
+  function save(){ if(store) store.save(); }
+
+  /* ---------------- Aktionen ---------------- */
+
+  function toast(text){
+    $("#toastText").textContent = text;
+    $("#toast").hidden = false;
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ $("#toast").hidden = true; }, 6000);
+  }
+  $("#toastUndo").addEventListener("click", function(){
+    if(!undoSnap) return;
+    state = undoSnap; undoSnap = null;
+    $("#toast").hidden = true; save(); render();
+  });
+
+  function addGuests(text){
+    var names = String(text).split(/[\n,;]+/).map(norm).filter(Boolean);
+    if(!names.length) return;
+    var have = {};
+    Object.keys(state.guests).forEach(function(id){ have[key(state.guests[id].name)] = true; });
+    var added = 0, dupes = [], first = null;
+    undoSnap = JSON.parse(JSON.stringify(state));
+    names.forEach(function(n){
+      if(have[key(n)]){ dupes.push(n); return; }
+      var id = gid();
+      state.guests[id] = normalizeGuest({name:n});
+      have[key(n)] = true; added++; first = first || id;
+    });
+    save(); render();
+    if(added && dupes.length) toast(added + " aufgenommen, schon auf der Liste: " + dupes.join(", "));
+    else if(dupes.length) toast(dupes.join(", ") + (dupes.length === 1 ? " steht" : " stehen") + " schon auf der Liste");
+    else toast(added === 1 ? names[0] + " aufgenommen" : added + " Gäste aufgenommen");
+    if(first){
+      var row = document.querySelector('tr[data-id="' + first + '"] .nm input');
+      if(row) row.focus();
+    }
+  }
+
+  function deleteGuest(id){
+    var name = state.guests[id] ? state.guests[id].name : "Gast";
+    undoSnap = JSON.parse(JSON.stringify(state));
+    delete state.guests[id];
+    save(); render();
+    toast(name + " gelöscht" + (seats[id] ? " — der Platz am Tisch wird beim nächsten Abgleich frei" : ""));
+  }
+
+  /* ---------------- Darstellung ---------------- */
+
+  function sortedIds(){
+    return Object.keys(state.guests).sort(function(a,b){
+      return state.guests[a].name.localeCompare(state.guests[b].name, "de");
+    });
+  }
+  function visible(id){
+    var g = state.guests[id];
+    var f = FILTERS.filter(function(x){ return x.k === filter; })[0];
+    if(f && !f.fn(g, seats[id])) return false;
+    if(search){
+      var hay = (g.name + " " + g.note + " " + g.harsiTime).toLowerCase();
+      if(hay.indexOf(search) < 0) return false;
+    }
+    return true;
+  }
+
+  function render(){
+    renderFilters();
+    renderRows();
+    renderStats();
+  }
+
+  function renderFilters(){
+    var box = $("#filters");
+    if(box.childElementCount === FILTERS.length){
+      Array.prototype.forEach.call(box.children, function(b, i){
+        b.className = FILTERS[i].k === filter ? "on" : "";
+      });
+      return;
+    }
+    box.textContent = "";
+    FILTERS.forEach(function(f){
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = f.l;
+      if(f.k === filter) b.className = "on";
+      b.addEventListener("click", function(){ filter = f.k; render(); });
+      box.appendChild(b);
+    });
+  }
+
+  function renderStats(){
+    var ids = Object.keys(state.guests), yes = 0, open = 0, car = 0, uninformed = 0, seated = 0, harsi = 0;
+    ids.forEach(function(id){
+      var g = state.guests[id];
+      if(g.rsvp === "yes") yes++;
+      if(g.rsvp === "open") open++;
+      if(g.harsi && g.rsvp !== "no") harsi++;
+      if(g.car && g.rsvp !== "no") car++;
+      if(!g.informed && g.rsvp !== "no") uninformed++;
+      if(seats[id]) seated++;
+    });
+    $("#sAll").textContent = ids.length;
+    $("#sYes").textContent = yes;
+    $("#sOpen").textContent = open;
+    $("#sHarsi").textContent = harsi;
+    $("#sCar").textContent = car;  $("#sCarWrap").hidden = car === 0;
+    $("#sInfo").textContent = uninformed; $("#sInfoWrap").hidden = uninformed === 0;
+    $("#sSeat").textContent = seated;
+    $("#empty").hidden = ids.length > 0;
+  }
+
+  function textCell(id, field, placeholder){
+    var td = document.createElement("td");
+    var inp = document.createElement("input");
+    inp.type = "text"; inp.value = state.guests[id][field]; inp.placeholder = placeholder || "";
+    inp.setAttribute("aria-label", placeholder || field);
+    inp.addEventListener("input", function(){ state.guests[id][field] = inp.value; save(); });
+    td.appendChild(inp);
+    return td;
+  }
+
+  function renderRows(){
+    tbody.textContent = "";
+    sortedIds().forEach(function(id){
+      if(!visible(id)) return;
+      var g = state.guests[id];
+      var tr = document.createElement("tr");
+      tr.setAttribute("data-id", id);
+      tr.setAttribute("data-rsvp", g.rsvp);
+
+      // Name
+      var tdName = document.createElement("td");
+      tdName.className = "nm";
+      var name = document.createElement("input");
+      name.type = "text"; name.value = g.name; name.setAttribute("aria-label","Name");
+      name.addEventListener("input", function(){ state.guests[id].name = name.value; save(); });
+      name.addEventListener("blur", function(){
+        var v = norm(name.value);
+        if(!v){ name.value = g.name; return; }
+        var clash = Object.keys(state.guests).some(function(o){
+          return o !== id && key(state.guests[o].name) === key(v);
+        });
+        if(clash){ toast("„" + v + "“ steht schon auf der Liste"); name.value = g.name; return; }
+        state.guests[id].name = v; name.value = v; save();
+      });
+      tdName.appendChild(name);
+      tr.appendChild(tdName);
+
+      // Zusage
+      var tdR = document.createElement("td");
+      tdR.className = "tight";
+      var sel = document.createElement("select");
+      sel.className = "rsvp"; sel.setAttribute("aria-label","Zusage");
+      RSVP.forEach(function(x){
+        var o = document.createElement("option");
+        o.value = x.k; o.textContent = x.l;
+        if(g.rsvp === x.k) o.selected = true;
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", function(){
+        state.guests[id].rsvp = sel.value; save(); render();
+      });
+      tdR.appendChild(sel);
+      tr.appendChild(tdR);
+
+      // Treffpunkt (Hackerl) + Ankunftszeit
+      var tdH = document.createElement("td");
+      tdH.className = "tight";
+      var hbox = document.createElement("div");
+      hbox.className = "check";
+      var hcb = document.createElement("input");
+      hcb.type = "checkbox"; hcb.checked = !!g.harsi;
+      hcb.title = "Kommt zu Pesa"; hcb.setAttribute("aria-label","Kommt zu Pesa");
+      hbox.appendChild(hcb); tdH.appendChild(hbox); tr.appendChild(tdH);
+
+      var tdT = document.createElement("td");
+      tdT.className = "tight";
+      var time = document.createElement("input");
+      time.type = "time"; time.className = "tm" + (g.harsi ? "" : " off");
+      time.value = g.harsiTime || "";
+      time.setAttribute("aria-label","Ankunft bei Pesa");
+      time.addEventListener("input", function(){
+        state.guests[id].harsiTime = time.value;
+        // Eine Uhrzeit heisst: er kommt hin — Hackerl automatisch setzen.
+        if(time.value && !state.guests[id].harsi){
+          state.guests[id].harsi = true; hcb.checked = true; time.classList.remove("off");
+          renderStats();
+        }
+        save();
+      });
+      tdT.appendChild(time); tr.appendChild(tdT);
+
+      hcb.addEventListener("change", function(){
+        state.guests[id].harsi = hcb.checked;
+        time.classList.toggle("off", !hcb.checked);
+        save(); renderStats();
+      });
+
+      // Auto + Info
+      [["car","Braucht Auto"],["informed","Über Ablauf informiert"]].forEach(function(pair){
+        var td = document.createElement("td");
+        td.className = "tight";
+        var box = document.createElement("div");
+        box.className = "check";
+        var cb = document.createElement("input");
+        cb.type = "checkbox"; cb.checked = !!g[pair[0]]; cb.title = pair[1];
+        cb.setAttribute("aria-label", pair[1]);
+        cb.addEventListener("change", function(){
+          state.guests[id][pair[0]] = cb.checked; save(); renderStats();
+        });
+        box.appendChild(cb); td.appendChild(box); tr.appendChild(td);
+      });
+
+      // Notiz
+      var tdNote = textCell(id, "note", "Notiz");
+      tdNote.className = "wide";
+      tr.appendChild(tdNote);
+
+      // Tisch (nur Anzeige)
+      var tdSeat = document.createElement("td");
+      tdSeat.className = "seatcell" + (seats[id] ? "" : " none");
+      tdSeat.textContent = seats[id] || "—";
+      tr.appendChild(tdSeat);
+
+      // Löschen
+      var tdDel = document.createElement("td");
+      tdDel.className = "tight";
+      var del = document.createElement("button");
+      del.className = "del"; del.type = "button"; del.textContent = "✕"; del.title = "Gast löschen";
+      var armed = null;
+      del.addEventListener("click", function(){
+        if(!del.classList.contains("arm")){
+          del.classList.add("arm"); del.textContent = "Löschen?";
+          armed = setTimeout(function(){ del.classList.remove("arm"); del.textContent = "✕"; }, 5000);
+          return;
+        }
+        clearTimeout(armed); deleteGuest(id);
+      });
+      tdDel.appendChild(del);
+      tr.appendChild(tdDel);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ---------------- Bedienung ---------------- */
+
+  $("#guestAdd").addEventListener("click", function(){
+    addGuests($("#guestInput").value); $("#guestInput").value = "";
+  });
+  $("#guestInput").addEventListener("keydown", function(ev){
+    if(ev.key === "Enter"){ ev.preventDefault(); $("#guestAdd").click(); }
+  });
+  $("#search").addEventListener("input", function(){
+    search = $("#search").value.trim().toLowerCase(); renderRows();
+  });
+
+  /* ---------------- Export ---------------- */
+
+  function csv(){
+    var rows = [["Name","Zusage","Pesa","Ankunft Pesa","Braucht Auto","Informiert","Notiz","Tisch"]];
+    sortedIds().forEach(function(id){
+      var g = state.guests[id];
+      rows.push([g.name, rsvpLabel[g.rsvp], g.harsi ? "ja" : "", g.harsiTime, g.car ? "ja" : "", g.informed ? "ja" : "",
+                 g.note, seats[id] || ""]);
+    });
+    return "﻿" + rows.map(function(r){
+      return r.map(function(v){
+        v = String(v == null ? "" : v);
+        return /[";\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+      }).join(";");
+    }).join("\r\n");
+  }
+  function txt(){
+    var out = ["GÄSTELISTE", ""];
+    sortedIds().forEach(function(id){
+      var g = state.guests[id];
+      var flags = [];
+      if(g.harsi) flags.push("Pesa" + (g.harsiTime ? " " + g.harsiTime : ""));
+      if(g.car) flags.push("braucht Auto");
+      if(!g.informed) flags.push("noch nicht informiert");
+      out.push(g.name + "  [" + rsvpLabel[g.rsvp] + "]" + (flags.length ? " — " + flags.join(", ") : ""));
+      if(g.note)   out.push("    Notiz: " + g.note);
+      if(seats[id])out.push("    Tisch: " + seats[id]);
+    });
+    return out.join("\n");
+  }
+
+  var dlg = $("#exportDlg");
+  function browserDownload(filename, text){
+    try {
+      var type = /\.csv$/.test(filename) ? "text/csv;charset=utf-8" : "text/plain;charset=utf-8";
+      var url = URL.createObjectURL(new Blob([text], {type:type}));
+      var a = document.createElement("a");
+      a.href = url; a.download = filename; a.rel = "noopener";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      return true;
+    } catch(e){ return false; }
+  }
+  function claudeUse(name){
+    try { if(window.claude && typeof window.claude.use === "function") return window.claude.use(name); } catch(e){}
+    return Promise.resolve(null);
+  }
+  function offer(filename, text, title){
+    claudeUse("downloads").then(function(dl){
+      if(!dl) throw 0;
+      return dl.save({filename:filename, data:text});
+    }).catch(function(err){
+      if(err && err.code === "declined") return;
+      if(!window.claude && browserDownload(filename, text)) return;
+      $("#dlgTitle").textContent = title; $("#dlgText").value = text;
+      if(typeof dlg.showModal === "function") dlg.showModal();
+    });
+  }
+  $("#dlgClose").addEventListener("click", function(){ dlg.close(); });
+  $("#dlgCopy").addEventListener("click", function(){
+    var t = $("#dlgText"); t.select();
+    try { navigator.clipboard.writeText(t.value); } catch(e){ try { document.execCommand("copy"); } catch(e2){} }
+    $("#dlgCopy").textContent = "Kopiert";
+    setTimeout(function(){ $("#dlgCopy").textContent = "Kopieren"; }, 1500);
+  });
+  $("#exportCsv").addEventListener("click", function(){ offer("gaesteliste.csv", csv(), "CSV-Export"); });
+  $("#exportTxt").addEventListener("click", function(){ offer("gaesteliste.txt", txt(), "Textliste"); });
+
+  /* ---------------- Start ---------------- */
+
+  store = (token() && !window.claude) ? githubStore() : localStore();
+  store.start();
+})();
+</script>
+</body>
+</html>

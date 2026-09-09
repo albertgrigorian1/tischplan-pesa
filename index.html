@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Sitzordnung Pesa: Tische, Plätze, Gäste.">
+<title>Tischplan Pesa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#FAF6F2;
+  --surface:#FFFFFF;
+  --surface-2:#F2EAE3;
+  --line:#E4D9CF;
+  --line-strong:#CBBAAD;
+  --ink:#241C20;
+  --ink-2:#6C5C61;
+  --ink-3:#8F7F84;
+  --accent:#B0521F;
+  --accent-soft:#F7E4D6;
+  --on-accent:#FFF8F3;
+  --ok:#1C6A5E;
+  --ok-soft:#DCEDE9;
+  --warn:#8A5312;
+  --warn-soft:#FBEBD8;
+  --harsi:#9A3A59;
+  --harsi-soft:#F8E1E8;
+  --focus:#B0521F;
+  --shadow:0 1px 2px rgba(36,28,32,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#161114; --surface:#1F191D; --surface-2:#2A2227;
+    --line:#3A3036; --line-strong:#514349;
+    --ink:#F3EAE4; --ink-2:#B6A49F; --ink-3:#8E7C79;
+    --accent:#E08A52; --accent-soft:#3A2517; --on-accent:#1B1114;
+    --ok:#6ECCBA; --ok-soft:#122F29;
+    --warn:#E0A257; --warn-soft:#33240F;
+    --harsi:#E98CA6; --harsi-soft:#3B1F28;
+    --focus:#E08A52; --shadow:0 1px 2px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#161114; --surface:#1F191D; --surface-2:#2A2227;
+  --line:#3A3036; --line-strong:#514349;
+  --ink:#F3EAE4; --ink-2:#B6A49F; --ink-3:#8E7C79;
+  --accent:#E08A52; --accent-soft:#3A2517; --on-accent:#1B1114;
+  --ok:#6ECCBA; --ok-soft:#122F29;
+  --warn:#E0A257; --warn-soft:#33240F;
+  --harsi:#E98CA6; --harsi-soft:#3B1F28;
+  --focus:#E08A52; --shadow:0 1px 2px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--ground);color:var(--ink);
+  font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;font-size:15px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1400px;margin:0 auto;padding:26px 22px 110px}
+
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+h1{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:32px;line-height:1.05;margin:0;letter-spacing:-.01em}
+.sub{margin:6px 0 0;color:var(--ink-2);font-size:14px;max-width:62ch}
+.sub a{color:var(--accent)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);padding:9px 14px;transition:background .12s,border-color .12s,color .12s}
+button:hover{background:var(--surface-2)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:500}
+button.primary:hover{filter:brightness(1.06);background:var(--accent)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+input,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:7px;padding:8px 10px;width:100%}
+input::placeholder,textarea::placeholder{color:var(--ink-3)}
+textarea{resize:vertical;min-height:74px;line-height:1.45}
+
+.bar{margin-top:20px;display:flex;flex-wrap:wrap;align-items:center;gap:0 24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:11px 0}
+.stat{display:flex;align-items:baseline;gap:8px;padding-right:24px;border-right:1px solid var(--line)}
+.stat:last-of-type{border-right:0}
+.stat b{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.stat.flag b,.stat.flag span{color:var(--warn)}
+.savestate{margin-left:auto;font-size:12.5px;color:var(--ink-3);display:flex;align-items:center;gap:7px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.savestate[data-state="saving"] .dot{background:var(--accent)}
+.savestate[data-state="local"] .dot{background:var(--warn)}
+
+.layout{display:grid;grid-template-columns:300px 1fr;gap:24px;margin-top:24px;align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+
+/* ---------- Gästeliste ---------- */
+.pool{position:sticky;top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow)}
+@media (max-width:900px){.pool{position:static}}
+.pool h2{font-family:Fraunces,Georgia,serif;font-size:18px;margin:0;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.pool h2 em{font-style:normal;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink-3)}
+.pool.drop{border-color:var(--accent);background:var(--accent-soft)}
+.addrow{display:flex;gap:8px}
+.addrow button{flex:none}
+.hint{margin:0;font-size:12px;color:var(--ink-3);line-height:1.4}
+.hint a{color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;min-height:40px;max-height:44vh;overflow-y:auto;padding:2px}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;max-width:100%;
+  border:1px solid var(--line-strong);background:var(--surface);border-radius:20px;
+  padding:5px 6px 5px 11px;font-size:13.5px;cursor:grab;user-select:none;
+}
+.chip:hover{border-color:var(--ink-3)}
+.chip.sel{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:500}
+.chip.dim{opacity:.3}
+.chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip .x{border:0;background:transparent;color:inherit;opacity:.55;font-size:14px;line-height:1;padding:2px 4px;border-radius:50%;cursor:pointer}
+.chip .x:hover{opacity:1;background:rgba(128,90,60,.18)}
+.chip{padding-right:11px}
+.ghar{font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--harsi);background:var(--harsi-soft);border-radius:9px;padding:1px 6px;flex:none;font-variant-numeric:tabular-nums}
+.chip.sel .ghar{color:var(--on-accent);background:transparent;border:1px solid var(--on-accent)}
+.gcar{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);border-radius:9px;padding:1px 6px;flex:none}
+.chip.sel .gcar{color:var(--on-accent);background:transparent;border:1px solid var(--on-accent)}
+.poolempty{font-size:13px;color:var(--ink-3);padding:6px 2px}
+
+/* ---------- Tische ---------- */
+.tables{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(352px,1fr))}
+.table{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 14px 12px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+.table.full{border-color:var(--ok)}
+.table > header{display:flex;align-items:center;gap:9px}
+.idbadge{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:12.5px;background:var(--ink);color:var(--ground);border-radius:6px;padding:5px 8px;flex:none}
+.tname{font-weight:600;font-size:15px}
+.del{flex:none;border:0;background:transparent;color:var(--ink-3);font-size:16px;line-height:1;padding:6px 8px;border-radius:6px;cursor:pointer}
+.del:hover{background:var(--warn-soft);color:var(--warn)}
+.del.arm{background:var(--warn);color:var(--surface);font-size:12px;font-weight:600;padding:6px 10px}
+
+.round{position:relative;width:330px;height:330px;margin:2px auto 0;max-width:100%}
+.plate{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:150px;height:150px;border-radius:50%;
+  background:var(--surface-2);border:1px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+}
+.plate b{font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;line-height:1}
+.plate span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.plate em{font-style:normal;font-size:11.5px;color:var(--warn);font-weight:600}
+.table.full .plate{background:var(--ok-soft);border-color:var(--ok)}
+
+.seat{
+  position:absolute;width:74px;height:34px;transform:translate(-50%,-50%);
+  border-radius:17px;border:1px dashed var(--line-strong);background:var(--surface);
+  display:flex;align-items:center;justify-content:center;gap:4px;padding:0 6px;
+  font-size:11.5px;cursor:pointer;overflow:hidden;transition:border-color .12s,background .12s;
+}
+.seat .no{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--ink-3);flex:none}
+.seat .who{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.15}
+.seat.taken{border-style:solid;border-color:var(--line-strong);background:var(--surface-2);font-weight:500;cursor:grab}
+.seat.taken .who{color:var(--ink)}
+.seat.sel{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.seat.sel .no,.seat.sel .who{color:var(--on-accent)}
+.seat:hover{border-color:var(--ink-3)}
+.seat.target{border-color:var(--accent);border-style:solid;background:var(--accent-soft)}
+.seat.drop{border-color:var(--accent);background:var(--accent-soft);border-style:solid}
+
+.table > footer{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:9px}
+.segs{display:flex;gap:5px}
+.segs button{padding:4px 11px;font-size:13px;border-radius:6px;font-family:"IBM Plex Mono",monospace}
+.segs button.on{background:var(--ink);border-color:var(--ink);color:var(--ground);font-weight:600}
+.seatlabel{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+
+.empty{margin-top:36px;text-align:center;color:var(--ink-2)}
+
+/* ---------- Hinweis unten ---------- */
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+  background:var(--ink);color:var(--ground);border-radius:10px;
+  padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px;
+  font-size:13.5px;box-shadow:0 8px 28px rgba(0,0,0,.28);z-index:50;max-width:92vw;
+}
+.toast[hidden]{display:none}
+.toast button{background:transparent;border:1px solid rgba(255,255,255,.32);color:var(--ground);padding:5px 11px;font-size:13px}
+.toast button:hover{background:rgba(255,255,255,.14)}
+
+dialog{border:1px solid var(--line-strong);border-radius:12px;background:var(--surface);color:var(--ink);padding:18px;max-width:min(680px,92vw);width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(20,14,17,.45)}
+dialog h2{font-family:Fraunces,Georgia,serif;font-size:20px;margin:0 0 4px}
+dialog p{margin:0 0 12px;color:var(--ink-2);font-size:13.5px}
+dialog textarea{height:300px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:var(--surface-2)}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Tischplan Pesa</h1>
+      <p class="sub">Gäste links eintragen, dann auf einen Platz setzen: Gast antippen, freien Stuhl antippen — oder mit der Maus ziehen. Jeder Gast sitzt nur einmal.</p>
+    </div>
+    <div class="actions">
+      <button id="exportCsv">CSV exportieren</button>
+      <button id="exportTxt">Liste als Text</button>
+      <button id="addTable" class="primary">+ Tisch hinzufügen</button>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="stat"><b id="sGuests">0</b><span>Gäste</span></div>
+    <div class="stat"><b id="sSeated">0</b><span>platziert</span></div>
+    <div class="stat flag" id="sOpenWrap" hidden><b id="sOpen">0</b><span>ohne Platz</span></div>
+    <div class="stat"><b id="sTables">0</b><span>Tische</span></div>
+    <div class="stat"><b id="sSeats">0</b><span>Plätze frei</span></div>
+    <div class="savestate" id="saveState" data-state="idle"><span class="dot"></span><span id="saveText">Bereit</span></div>
+  </div>
+
+  <div class="layout">
+    <aside class="pool" id="pool">
+      <h2>Ohne Platz <em id="poolCount">0</em></h2>
+      <p class="hint">Namen kommen aus der <a href="./gaeste.html">Gästeliste</a> — dort aufnehmen, ändern oder streichen. Abgesagte Gäste erscheinen hier nicht.</p>
+      <input id="poolSearch" placeholder="Suchen …" autocomplete="off">
+      <div class="chips" id="poolChips"></div>
+    </aside>
+
+    <section>
+      <div class="tables" id="tables"></div>
+      <p class="empty" id="empty" hidden>Noch kein Tisch angelegt. Oben rechts auf „Tisch hinzufügen“.</p>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden>
+  <span id="toastText"></span>
+  <button id="toastUndo">Rückgängig</button>
+</div>
+
+<dialog id="exportDlg">
+  <h2 id="dlgTitle">Export</h2>
+  <p>Der Download ist hier nicht verfügbar — Text markieren und kopieren.</p>
+  <textarea id="dlgText" readonly></textarea>
+  <div class="dialog-actions">
+    <button id="dlgCopy">Kopieren</button>
+    <button id="dlgClose" class="primary">Schließen</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  "use strict";
+
+  var TARGET = 10, MIN_SEATS = 9, MAX_SEATS = 11;
+
+  // Fest hinterlegter Zugang — siehe Kommentar in der Konvoi-Seite.
+  var GH = {
+    repo: "albertgrigorian1/hochzeitskonvoi-daten",
+    path: "tische-pesa.json",
+    guestPath: "gaeste-pesa.json",
+    branch: "main",
+    k: ["RlpHN1ZBMTFfdGFwX2J1aHRpZw==",
+        "YzlDTF95eEpjODNVY0RjbVEwSQ==",
+        "SzZDRTRybU1JdTU1Q0NnQUh2WQ==",
+        "ZUFGRU5RNDAybzhjR3hvRnU0aA==",
+        "N0ZPeVM5NUJZMzYzRVhSQ08="]
+  };
+
+  var $ = function(s){ return document.querySelector(s); };
+  var saveState = $("#saveState"), saveText = $("#saveText");
+  var tablesEl = $("#tables"), poolChips = $("#poolChips"), poolEl = $("#pool");
+
+  // state.tables: {T01:{nr,name,seats,order:[guestId|null,...]}}
+  // state.guests: {gid:{name}}
+  var state = {nextNr:1, tables:{}, guests:{}};
+  var store = null, selected = null, dragId = null, undoSnap = null, toastTimer = null;
+  var bootstrapped = false, filter = "";
+
+  function pad(n){ return "T" + String(n).padStart(2,"0"); }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function norm(s){ return String(s||"").trim().replace(/\s+/g," "); }
+  function key(s){ return norm(s).toLowerCase(); }
+  function gid(){ return "g" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+  function setSave(st, text){ saveState.setAttribute("data-state", st); saveText.textContent = text; }
+
+  // Fremde oder halb geschriebene Stände sauber machen, damit die Anzeige nie bricht:
+  // Plätze auffüllen, unbekannte Gäste entfernen, Doppelbelegungen auflösen.
+  function normalizeState(s){
+    var out = {nextNr: s.nextNr || 1, tables: {}, guests: {}};
+    Object.keys(s.guests || {}).forEach(function(id){
+      var g = s.guests[id] || {}, name = norm(g.name);
+      if(!name) return;
+      out.guests[id] = {name:name,
+                        harsi: g.harsi !== undefined ? !!g.harsi : (g.group === "harsi"),
+                        harsiTime: g.harsiTime || "",
+                        rsvp: (g.rsvp === "yes" || g.rsvp === "no") ? g.rsvp : "open",
+                        car: !!g.car};
+    });
+    var used = {};
+    Object.keys(s.tables || {}).forEach(function(tid){
+      var t = s.tables[tid] || {};
+      var count = Math.min(MAX_SEATS, Math.max(MIN_SEATS, t.seats || (t.order && t.order.length) || TARGET));
+      var order = Array.isArray(t.order) ? t.order.slice(0, count) : [];
+      while(order.length < count) order.push(null);
+      order = order.map(function(g){
+        if(!g || !out.guests[g] || used[g]) return null;
+        used[g] = true; return g;
+      });
+      out.tables[tid] = {nr: t.nr || parseInt(String(tid).replace(/\D/g,""),10) || 1,
+                         name: t.name || "", seats: count, order: order};
+      out.nextNr = Math.max(out.nextNr, out.tables[tid].nr + 1);
+    });
+    return out;
+  }
+
+  /* ---------------- Speicher (GitHub-Datei) ---------------- */
+
+  function b64encode(str){
+    var bytes = new TextEncoder().encode(str), bin = "";
+    for(var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function b64decode(b64){
+    var bin = atob(String(b64).replace(/\s/g,"")), bytes = new Uint8Array(bin.length);
+    for(var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function ghConfig(){
+    var token = "";
+    try {
+      token = GH.k.map(function(p){ return b64decode(p).split("").reverse().join(""); }).join("");
+    } catch(e){ return null; }
+    return (GH.repo && token)
+      ? {repo:GH.repo, path:GH.path, guestPath:GH.guestPath, branch:GH.branch, token:token}
+      : null;
+  }
+  function clock(){
+    var d = new Date();
+    return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+  }
+
+  function githubStore(cfg){
+    var api = "https://api.github.com/repos/" + cfg.repo + "/contents/" +
+              cfg.path.split("/").map(encodeURIComponent).join("/");
+    var base = "https://api.github.com/repos/" + cfg.repo + "/contents/";
+    var sha = null, writing = false, dirty = false, timer = null, ready = false;
+    var guestsFromFile = false;   // true, sobald es die eigene Gästeliste gibt
+
+    function headers(extra){
+      var h = {"Accept":"application/vnd.github+json","Authorization":"Bearer " + cfg.token,
+               "X-GitHub-Api-Version":"2022-11-28"};
+      if(extra) Object.keys(extra).forEach(function(k){ h[k] = extra[k]; });
+      return h;
+    }
+    function fail(r){
+      if(r.status === 401) return "Token ungültig oder abgelaufen";
+      if(r.status === 403) return "Token hat keine Schreibrechte";
+      if(r.status === 404) return "Repository oder Branch nicht gefunden";
+      return "GitHub meldet HTTP " + r.status;
+    }
+    function get(path){
+      return fetch(base + encodeURIComponent(path) + "?ref=" + encodeURIComponent(cfg.branch) + "&_=" + Date.now(),
+                   {headers:headers(), cache:"no-store"})
+        .then(function(r){
+          if(r.status === 404) return null;
+          if(!r.ok) throw new Error(fail(r));
+          return r.json().then(function(j){
+            var raw = j.content ? b64decode(j.content).trim() : "";
+            return {sha:j.sha, data: raw ? JSON.parse(raw) : {}};
+          });
+        });
+    }
+    // Sitzordnung aus tische.json, Namen aus gaeste.json (solange die fehlt: aus tische.json).
+    function pull(){
+      return Promise.all([get(cfg.path), get(cfg.guestPath)]).then(function(res){
+        var tb = res[0], gl = res[1];
+        sha = tb ? tb.sha : null;
+        var raw = tb ? tb.data : {};
+        guestsFromFile = !!gl;
+        var guests = gl ? (gl.data.guests || {}) : (raw.guests || {});
+        return normalizeState({nextNr:raw.nextNr, tables:raw.tables, guests:guests});
+      });
+    }
+    function push(){
+      if(writing){ dirty = true; return; }
+      writing = true; dirty = false;
+      setSave("saving","Wird gespeichert …");
+      var body = {nextNr:state.nextNr, tables:state.tables};
+      if(!guestsFromFile) body.guests = state.guests;   // Altbestand nicht verlieren
+      var payload = {message:"Tischplan aktualisiert", branch:cfg.branch,
+                     content:b64encode(JSON.stringify(body, null, 1))};
+      if(sha) payload.sha = sha;
+      return fetch(base + encodeURIComponent(cfg.path),
+                   {method:"PUT", headers:headers({"Content-Type":"application/json"}),
+                    body:JSON.stringify(payload)})
+        .then(function(r){
+          if(r.status === 409 || r.status === 422){ dirty = true; return pull().then(function(){}); }
+          if(!r.ok) throw new Error(fail(r));
+          return r.json().then(function(j){ sha = j.content && j.content.sha; synced(); });
+        })
+        .catch(function(e){ setSave("local","Nicht gespeichert: " + e.message); })
+        .then(function(){ writing = false; if(dirty) push(); });
+    }
+    function synced(){ setSave("idle","Gemeinsame Liste · Stand " + clock()); }
+
+    function poll(){
+      if(writing || dirty || timer) return;
+      pull().then(function(remote){
+        // Nichts überschreiben, solange jemand hier gerade etwas geändert hat.
+        state = remote; render(); synced();
+      }).catch(function(e){ setSave("local","Kein Abgleich: " + e.message); });
+    }
+
+    return {
+      start:function(){
+        setSave("saving","Liste wird geladen …");
+        pull().then(function(remote){
+          state = remote; ready = true; render(); synced(); boot();
+        }).catch(function(e){
+          setSave("local","Verbindung fehlgeschlagen: " + e.message);
+          bootstrapped = true; render();
+        });
+        setInterval(poll, 12000);
+        document.addEventListener("visibilitychange", function(){ if(!document.hidden) poll(); });
+        window.addEventListener("focus", poll);
+      },
+      save:function(){
+        if(timer) clearTimeout(timer);
+        setSave("saving","Wird gespeichert …");
+        timer = setTimeout(function(){ timer = null; push(); }, 1200);
+      },
+      isReady:function(){ return ready; }
+    };
+  }
+
+  function localStore(){
+    var KEY = "tischplan.pesa.v1";
+    return {
+      start:function(){
+        try {
+          var raw = localStorage.getItem(KEY);
+          if(raw) state = normalizeState(JSON.parse(raw));
+        } catch(e){}
+        setSave("local","Auf diesem Gerät gespeichert");
+        render(); boot();
+      },
+      save:function(){
+        try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+        setSave("local","Auf diesem Gerät gespeichert");
+      },
+      isReady:function(){ return true; }
+    };
+  }
+
+  function save(){ if(store) store.save(); }
+
+  /* ---------------- Ableitungen ---------------- */
+
+  function tableIds(){
+    return Object.keys(state.tables).sort(function(a,b){
+      return (state.tables[a].nr||0) - (state.tables[b].nr||0);
+    });
+  }
+  function seatIndex(){
+    var map = {};
+    tableIds().forEach(function(tid){
+      (state.tables[tid].order || []).forEach(function(g, i){
+        if(g) map[g] = {table:tid, seat:i};
+      });
+    });
+    return map;
+  }
+  function poolIds(idx){
+    return Object.keys(state.guests)
+      .filter(function(g){ return !idx[g] && state.guests[g].rsvp !== "no"; })
+      .sort(function(a,b){ return state.guests[a].name.localeCompare(state.guests[b].name,"de"); });
+  }
+  function occupied(t){ return (t.order||[]).filter(Boolean).length; }
+
+  /* ---------------- Aktionen (jede mit Rückgängig) ---------------- */
+
+  function act(text, fn){
+    undoSnap = clone(state);
+    fn();
+    save(); render();
+    if(text) toast(text);
+  }
+  function toast(text){
+    $("#toastText").textContent = text;
+    $("#toast").hidden = false;
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ $("#toast").hidden = true; }, 6000);
+  }
+  $("#toastUndo").addEventListener("click", function(){
+    if(!undoSnap) return;
+    state = undoSnap; undoSnap = null;
+    $("#toast").hidden = true;
+    save(); render();
+  });
+
+  function place(guestId, tid, seat){
+    var idx = seatIndex(), from = idx[guestId];
+    var t = state.tables[tid];
+    if(!t) return;
+    var sitting = t.order[seat] || null;
+    if(sitting === guestId) return;
+    var name = state.guests[guestId] ? state.guests[guestId].name : "Gast";
+
+    act(null, function(){
+      if(from) state.tables[from.table].order[from.seat] = null;
+      if(sitting){
+        // Platztausch: wer dort saß, geht auf den frei gewordenen Stuhl oder zurück in die Liste.
+        if(from) state.tables[from.table].order[from.seat] = sitting;
+      }
+      state.tables[tid].order[seat] = guestId;
+    });
+    selected = null;
+    var where = t.name || pad(t.nr);
+    if(sitting){
+      var other = state.guests[sitting] ? state.guests[sitting].name : "Gast";
+      toast(from ? name + " und " + other + " getauscht" : other + " ist jetzt ohne Platz — " + name + " sitzt auf " + (seat+1));
+    } else {
+      toast(name + " sitzt auf Platz " + (seat + 1) + " an " + where);
+    }
+    render();
+  }
+
+  function unseat(guestId){
+    var idx = seatIndex(), at = idx[guestId];
+    if(!at) return;
+    var name = state.guests[guestId].name;
+    act(name + " zurück in die Liste", function(){
+      state.tables[at.table].order[at.seat] = null;
+    });
+    selected = null;
+  }
+
+  function addTable(){
+    var n = state.nextNr || 1;
+    tableIds().forEach(function(tid){ n = Math.max(n, (state.tables[tid].nr||0) + 1); });
+    act(null, function(){
+      state.nextNr = n + 1;
+      state.tables[pad(n)] = {nr:n, name:"Tisch " + n, seats:TARGET, order:new Array(TARGET).fill(null)};
+    });
+  }
+
+  function setSeats(tid, count){
+    var t = state.tables[tid];
+    if(!t || count === t.seats) return;
+    var freed = [];
+    act(null, function(){
+      var order = t.order.slice();
+      if(count < order.length){
+        order.slice(count).forEach(function(g){ if(g) freed.push(state.guests[g].name); });
+        order = order.slice(0, count);
+      } else {
+        while(order.length < count) order.push(null);
+      }
+      state.tables[tid].order = order;
+      state.tables[tid].seats = count;
+    });
+    if(freed.length) toast(freed.join(", ") + (freed.length === 1 ? " hat" : " haben") + " den Platz verloren und steht wieder in der Liste");
+  }
+
+  function deleteTable(tid){
+    var t = state.tables[tid];
+    var back = occupied(t);
+    act("Tisch gelöscht" + (back ? " — " + back + " Gäste zurück in der Liste" : ""), function(){
+      delete state.tables[tid];
+    });
+  }
+
+  /* ---------------- Darstellung ---------------- */
+
+  function render(){
+    var idx = seatIndex();
+    renderTables(idx);
+    renderPool(idx);
+    renderStats(idx);
+    $("#empty").hidden = Object.keys(state.tables).length > 0;
+  }
+
+  function renderStats(idx){
+    var guests = Object.keys(state.guests).length;
+    var seated = Object.keys(idx).length;
+    var seats = 0;
+    tableIds().forEach(function(tid){ seats += state.tables[tid].order.length; });
+    $("#sGuests").textContent = guests;
+    $("#sSeated").textContent = seated;
+    $("#sOpen").textContent = guests - seated;
+    $("#sOpenWrap").hidden = guests - seated === 0;
+    $("#sTables").textContent = Object.keys(state.tables).length;
+    $("#sSeats").textContent = seats - seated;
+  }
+
+  function renderPool(idx){
+    var ids = poolIds(idx);
+    $("#poolCount").textContent = ids.length;
+    poolChips.textContent = "";
+    if(!ids.length){
+      var p = document.createElement("p");
+      p.className = "poolempty";
+      p.textContent = Object.keys(state.guests).length ? "Alle Gäste sitzen." : "Noch keine Gäste — in der Gästeliste aufnehmen.";
+      poolChips.appendChild(p);
+      return;
+    }
+    ids.forEach(function(g){
+      var name = state.guests[g].name;
+      var chip = document.createElement("div");
+      chip.className = "chip" + (selected === g ? " sel" : "") +
+                       (filter && name.toLowerCase().indexOf(filter) < 0 ? " dim" : "");
+      chip.draggable = true;
+      var sp = document.createElement("span"); sp.textContent = name;
+      chip.appendChild(sp);
+      if(state.guests[g].harsi){
+        var h = document.createElement("b");
+        h.className = "ghar"; h.textContent = "Pesa" + (state.guests[g].harsiTime ? " " + state.guests[g].harsiTime : "");
+        h.title = "Kommt zu Pesa";
+        chip.appendChild(h);
+      }
+      if(state.guests[g].car){
+        var c = document.createElement("b");
+        c.className = "gcar"; c.textContent = "Auto"; c.title = "Braucht ein Auto";
+        chip.appendChild(c);
+      }
+      chip.addEventListener("click", function(){
+        selected = (selected === g) ? null : g;
+        render();
+      });
+      chip.addEventListener("dragstart", function(ev){
+        dragId = g; ev.dataTransfer.setData("text/plain", g); ev.dataTransfer.effectAllowed = "move";
+      });
+      chip.addEventListener("dragend", function(){ dragId = null; clearDrop(); });
+      poolChips.appendChild(chip);
+    });
+  }
+
+  function clearDrop(){
+    Array.prototype.forEach.call(document.querySelectorAll(".seat.drop"), function(e){ e.classList.remove("drop"); });
+    poolEl.classList.remove("drop");
+  }
+
+  function renderTables(idx){
+    tablesEl.textContent = "";
+    tableIds().forEach(function(tid){
+      var t = state.tables[tid];
+      var art = document.createElement("article");
+      art.className = "table" + (occupied(t) === t.order.length ? " full" : "");
+
+      var head = document.createElement("header");
+      var badge = document.createElement("span");
+      badge.className = "idbadge"; badge.textContent = pad(t.nr);
+      var name = document.createElement("input");
+      name.className = "tname"; name.value = t.name || ""; name.placeholder = "Tischname";
+      name.setAttribute("aria-label","Name von " + pad(t.nr));
+      name.addEventListener("input", function(){ state.tables[tid].name = name.value; save(); });
+      var del = document.createElement("button");
+      del.className = "del"; del.type = "button"; del.textContent = "✕"; del.title = "Tisch löschen";
+      var armed = null;
+      del.addEventListener("click", function(){
+        if(!del.classList.contains("arm")){
+          del.classList.add("arm"); del.textContent = "Tisch löschen?";
+          armed = setTimeout(function(){ del.classList.remove("arm"); del.textContent = "✕"; }, 5000);
+          return;
+        }
+        clearTimeout(armed); deleteTable(tid);
+      });
+      head.append(badge, name, del);
+
+      var round = document.createElement("div");
+      round.className = "round";
+      var plate = document.createElement("div");
+      plate.className = "plate";
+      var b = document.createElement("b"); b.textContent = occupied(t);
+      var sp = document.createElement("span"); sp.textContent = "von " + t.order.length;
+      plate.append(b, sp);
+      if(t.order.length !== TARGET){
+        var em = document.createElement("em");
+        em.textContent = t.order.length + " Plätze";
+        plate.appendChild(em);
+      }
+      round.appendChild(plate);
+
+      var n = t.order.length, R = 128;
+      for(var i = 0; i < n; i++){
+        (function(seat){
+          var ang = (-90 + seat * 360 / n) * Math.PI / 180;
+          var el = document.createElement("div");
+          var who = t.order[seat];
+          el.className = "seat" + (who ? " taken" : "") +
+                         (who && selected === who ? " sel" : "") +
+                         (!who && selected ? " target" : "");
+          el.style.left = (50 + 39 * Math.cos(ang)) + "%";
+          el.style.top  = (50 + 39 * Math.sin(ang)) + "%";
+          el.setAttribute("role","button");
+          el.tabIndex = 0;
+          var no = document.createElement("span"); no.className = "no"; no.textContent = seat + 1;
+          var nm = document.createElement("span"); nm.className = "who";
+          nm.textContent = who ? state.guests[who].name : "frei";
+          el.append(no, nm);
+          el.title = who ? state.guests[who].name + " — Platz " + (seat+1) : "Platz " + (seat+1) + " frei";
+          if(who) el.draggable = true;
+
+          function activate(){
+            if(selected && selected !== who){ place(selected, tid, seat); return; }
+            if(who){ selected = (selected === who) ? null : who; render(); return; }
+            toast("Erst einen Gast auswählen, dann den Platz antippen.");
+          }
+          el.addEventListener("click", activate);
+          el.addEventListener("keydown", function(ev){
+            if(ev.key === "Enter" || ev.key === " "){ ev.preventDefault(); activate(); }
+            if(ev.key === "Delete" && who) unseat(who);
+          });
+          el.addEventListener("dragstart", function(ev){
+            if(!who) return;
+            dragId = who; ev.dataTransfer.setData("text/plain", who); ev.dataTransfer.effectAllowed = "move";
+          });
+          el.addEventListener("dragend", function(){ dragId = null; clearDrop(); });
+          el.addEventListener("dragover", function(ev){
+            if(!dragId) return;
+            ev.preventDefault(); el.classList.add("drop");
+          });
+          el.addEventListener("dragleave", function(){ el.classList.remove("drop"); });
+          el.addEventListener("drop", function(ev){
+            ev.preventDefault(); el.classList.remove("drop");
+            var g = ev.dataTransfer.getData("text/plain") || dragId;
+            if(g && state.guests[g]) place(g, tid, seat);
+            dragId = null;
+          });
+          round.appendChild(el);
+        })(i);
+      }
+
+      var foot = document.createElement("footer");
+      var lab = document.createElement("span");
+      lab.className = "seatlabel"; lab.textContent = "Plätze";
+      var segs = document.createElement("div");
+      segs.className = "segs";
+      [MIN_SEATS, TARGET, MAX_SEATS].forEach(function(c){
+        var btn = document.createElement("button");
+        btn.type = "button"; btn.textContent = c;
+        if(t.order.length === c) btn.className = "on";
+        btn.addEventListener("click", function(){ setSeats(tid, c); });
+        segs.appendChild(btn);
+      });
+      foot.append(lab, segs);
+
+      art.append(head, round, foot);
+      tablesEl.appendChild(art);
+    });
+  }
+
+  /* ---------------- Gästeliste als Ablage ---------------- */
+
+  poolEl.addEventListener("dragover", function(ev){
+    if(!dragId) return;
+    ev.preventDefault(); poolEl.classList.add("drop");
+  });
+  poolEl.addEventListener("dragleave", function(ev){
+    if(ev.target === poolEl) poolEl.classList.remove("drop");
+  });
+  poolEl.addEventListener("drop", function(ev){
+    ev.preventDefault(); poolEl.classList.remove("drop");
+    var g = ev.dataTransfer.getData("text/plain") || dragId;
+    if(g && state.guests[g]) unseat(g);
+    dragId = null;
+  });
+
+  /* ---------------- Bedienung ---------------- */
+
+  $("#poolSearch").addEventListener("input", function(){
+    filter = $("#poolSearch").value.trim().toLowerCase();
+    renderPool(seatIndex());
+  });
+  $("#addTable").addEventListener("click", addTable);
+  document.addEventListener("keydown", function(ev){
+    if(ev.key === "Escape" && selected){ selected = null; render(); }
+  });
+
+  /* ---------------- Export ---------------- */
+
+  function csv(){
+    var rows = [["Tisch-ID","Tisch","Platz","Gast"]];
+    tableIds().forEach(function(tid){
+      var t = state.tables[tid];
+      t.order.forEach(function(g, i){
+        rows.push([pad(t.nr), t.name || "", i + 1, g ? state.guests[g].name : ""]);
+      });
+    });
+    var idx = seatIndex();
+    poolIds(idx).forEach(function(g){ rows.push(["", "ohne Platz", "", state.guests[g].name]); });
+    return "﻿" + rows.map(function(r){
+      return r.map(function(v){
+        v = String(v == null ? "" : v);
+        return /[";\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+      }).join(";");
+    }).join("\r\n");
+  }
+
+  function txt(){
+    var out = ["TISCHPLAN", ""], idx = seatIndex();
+    tableIds().forEach(function(tid){
+      var t = state.tables[tid];
+      out.push((t.name || pad(t.nr)) + "  (" + pad(t.nr) + ", " + occupied(t) + "/" + t.order.length + ")");
+      t.order.forEach(function(g, i){
+        out.push("  " + (i+1) + ". " + (g ? state.guests[g].name : "frei"));
+      });
+      out.push("");
+    });
+    var rest = poolIds(idx);
+    if(rest.length){
+      out.push("Ohne Platz (" + rest.length + "):");
+      rest.forEach(function(g){ out.push("  " + state.guests[g].name); });
+    }
+    return out.join("\n");
+  }
+
+  var dlg = $("#exportDlg");
+  function browserDownload(filename, text){
+    try {
+      var type = /\.csv$/.test(filename) ? "text/csv;charset=utf-8" : "text/plain;charset=utf-8";
+      var url = URL.createObjectURL(new Blob([text], {type:type}));
+      var a = document.createElement("a");
+      a.href = url; a.download = filename; a.rel = "noopener";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      return true;
+    } catch(e){ return false; }
+  }
+  function claudeUse(name){
+    try { if(window.claude && typeof window.claude.use === "function") return window.claude.use(name); } catch(e){}
+    return Promise.resolve(null);
+  }
+  function offer(filename, text, title){
+    claudeUse("downloads").then(function(dl){
+      if(!dl) throw 0;
+      return dl.save({filename:filename, data:text});
+    }).catch(function(err){
+      if(err && err.code === "declined") return;
+      if(!window.claude && browserDownload(filename, text)) return;
+      $("#dlgTitle").textContent = title; $("#dlgText").value = text;
+      if(typeof dlg.showModal === "function") dlg.showModal();
+    });
+  }
+  $("#dlgClose").addEventListener("click", function(){ dlg.close(); });
+  $("#dlgCopy").addEventListener("click", function(){
+    var t = $("#dlgText"); t.select();
+    try { navigator.clipboard.writeText(t.value); } catch(e){ try { document.execCommand("copy"); } catch(e2){} }
+    $("#dlgCopy").textContent = "Kopiert";
+    setTimeout(function(){ $("#dlgCopy").textContent = "Kopieren"; }, 1500);
+  });
+  $("#exportCsv").addEventListener("click", function(){ offer("tischplan.csv", csv(), "CSV-Export"); });
+  $("#exportTxt").addEventListener("click", function(){ offer("tischplan.txt", txt(), "Textliste"); });
+
+  /* ---------------- Start ---------------- */
+
+  function boot(){
+    if(bootstrapped) return;
+    bootstrapped = true;
+    if(!Object.keys(state.tables).length) addTable();
+  }
+
+  var cfg = ghConfig();
+  store = (cfg && !window.claude) ? githubStore(cfg) : localStore();
+  store.start();
+})();
+</script>
+</body>
+</html>
