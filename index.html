@@ -287,8 +287,8 @@ dialog textarea{height:300px;font-family:"IBM Plex Mono",monospace;font-size:12.
       var g = s.guests[id] || {}, name = norm(g.name);
       if(!name) return;
       out.guests[id] = {name:name,
-                        harsi: g.harsi !== undefined ? !!g.harsi : (g.group === "harsi"),
-                        harsiTime: g.harsiTime || "",
+                        start: g.start || ((g.harsi || g.group === "harsi") ? "harsi" : ""),
+                        startTime: g.startTime || g.harsiTime || "",
                         rsvp: (g.rsvp === "yes" || g.rsvp === "no") ? g.rsvp : "open",
                         car: !!g.car};
     });
@@ -608,10 +608,12 @@ dialog textarea{height:300px;font-family:"IBM Plex Mono",monospace;font-size:12.
       chip.draggable = true;
       var sp = document.createElement("span"); sp.textContent = name;
       chip.appendChild(sp);
-      if(state.guests[g].harsi){
+      if(state.guests[g].start || state.guests[g].startTime){
+        var loc = {harsi:"Harsi tun", kirche:"Kirche", saal:"Saal"}[state.guests[g].start] || "";
         var h = document.createElement("b");
-        h.className = "ghar"; h.textContent = "Pesa" + (state.guests[g].harsiTime ? " " + state.guests[g].harsiTime : "");
-        h.title = "Kommt zu Pesa";
+        h.className = "ghar";
+        h.textContent = (loc + " " + (state.guests[g].startTime || "")).trim();
+        h.title = "Startet in " + (loc || "—") + (state.guests[g].startTime ? " um " + state.guests[g].startTime : "");
         chip.appendChild(h);
       }
       if(state.guests[g].car){

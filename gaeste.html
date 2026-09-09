@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Gästeliste Pesa: Zusagen, Treffpunkt, Auto, Info.">
+<meta name="description" content="Gästeliste Pesa: Zusagen, Startpunkt, Auto, Info.">
 <title>Gästeliste Pesa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -109,6 +109,8 @@ td input[type=text]:hover,td input[type=text]:focus{border-color:var(--line-stro
 
 
 select.rsvp{width:118px;padding:6px 8px}
+select.start{width:124px;padding:6px 8px}
+select.start.off{color:var(--ink-3);border-color:var(--line)}
 input.tm{width:106px;padding:6px 8px;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
 input.tm.off{color:var(--ink-3);border-color:transparent;background:transparent}
 input.tm.off:hover,input.tm:focus{border-color:var(--line-strong);background:var(--surface)}
@@ -158,7 +160,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
     <div class="stat"><b id="sAll">0</b><span>Gäste</span></div>
     <div class="stat"><b id="sYes">0</b><span>zugesagt</span></div>
     <div class="stat"><b id="sOpen">0</b><span>offen</span></div>
-    <div class="stat"><b id="sHarsi">0</b><span>zu Pesa</span></div>
+    <div class="stat flag" id="sStartWrap" hidden><b id="sStart">0</b><span>ohne Startpunkt</span></div>
     <div class="stat flag" id="sCarWrap" hidden><b id="sCar">0</b><span>brauchen Auto</span></div>
     <div class="stat flag" id="sInfoWrap" hidden><b id="sInfo">0</b><span>nicht informiert</span></div>
     <div class="stat"><b id="sSeat">0</b><span>am Tisch</span></div>
@@ -181,7 +183,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
         <tr>
           <th>Name</th>
           <th>Zusage</th>
-          <th>Pesa</th>
+          <th>Startet in</th>
           <th>Ankunft</th>
           <th>Auto</th>
           <th>Info</th>
@@ -227,12 +229,17 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
         "N0ZPeVM5NUJZMzYzRVhSQ08="]
   };
 
+  var STARTS = [{k:"",l:"—"},{k:"harsi",l:"Harsi tun"},{k:"kirche",l:"Kirche"},{k:"saal",l:"Saal"}];
+  var startLabel = {"":"—", harsi:"Harsi tun", kirche:"Kirche", saal:"Saal"};
   var RSVP = [{k:"open",l:"offen"},{k:"yes",l:"zugesagt"},{k:"no",l:"abgesagt"}];
   var rsvpLabel = {open:"offen", yes:"zugesagt", no:"abgesagt"};
 
   var FILTERS = [
     {k:"all",   l:"Alle",             fn:function(){ return true; }},
-    {k:"harsi", l:"Pesa",             fn:function(g){ return g.harsi; }},
+    {k:"harsi", l:"Harsi tun",        fn:function(g){ return g.start === "harsi"; }},
+    {k:"kirche",l:"Kirche",           fn:function(g){ return g.start === "kirche"; }},
+    {k:"saal",  l:"Saal",             fn:function(g){ return g.start === "saal"; }},
+    {k:"nostart",l:"Ohne Startpunkt", fn:function(g){ return !g.start; }},
     {k:"car",   l:"Braucht Auto",     fn:function(g){ return g.car; }},
     {k:"info",  l:"Nicht informiert", fn:function(g){ return !g.informed; }},
     {k:"noseat",l:"Ohne Tisch",       fn:function(g,s){ return !s; }},
@@ -255,8 +262,9 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
     g = g || {};
     return {
       name: norm(g.name),
-      harsi: g.harsi !== undefined ? !!g.harsi : (g.group === "harsi"),
-      harsiTime: /^\d{2}:\d{2}$/.test(g.harsiTime || "") ? g.harsiTime : "",
+      start: (g.start && startLabel[g.start] !== undefined) ? g.start
+             : ((g.harsi || g.group === "harsi") ? "harsi" : ""),
+      startTime: /^\d{2}:\d{2}$/.test(g.startTime || g.harsiTime || "") ? (g.startTime || g.harsiTime) : "",
       rsvp: rsvpLabel[g.rsvp] ? g.rsvp : "open",
       car: !!g.car,
       informed: !!g.informed,
@@ -471,7 +479,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
     var f = FILTERS.filter(function(x){ return x.k === filter; })[0];
     if(f && !f.fn(g, seats[id])) return false;
     if(search){
-      var hay = (g.name + " " + g.note + " " + g.harsiTime).toLowerCase();
+      var hay = (g.name + " " + g.note + " " + startLabel[g.start] + " " + g.startTime).toLowerCase();
       if(hay.indexOf(search) < 0) return false;
     }
     return true;
@@ -507,7 +515,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
       var g = state.guests[id];
       if(g.rsvp === "yes") yes++;
       if(g.rsvp === "open") open++;
-      if(g.harsi && g.rsvp !== "no") harsi++;
+      if(!g.start && g.rsvp !== "no") harsi++;
       if(g.car && g.rsvp !== "no") car++;
       if(!g.informed && g.rsvp !== "no") uninformed++;
       if(seats[id]) seated++;
@@ -515,7 +523,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
     $("#sAll").textContent = ids.length;
     $("#sYes").textContent = yes;
     $("#sOpen").textContent = open;
-    $("#sHarsi").textContent = harsi;
+    $("#sStart").textContent = harsi; $("#sStartWrap").hidden = harsi === 0;
     $("#sCar").textContent = car;  $("#sCarWrap").hidden = car === 0;
     $("#sInfo").textContent = uninformed; $("#sInfoWrap").hidden = uninformed === 0;
     $("#sSeat").textContent = seated;
@@ -576,38 +584,37 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
       tdR.appendChild(sel);
       tr.appendChild(tdR);
 
-      // Treffpunkt (Hackerl) + Ankunftszeit
+      // Startet in + Ankunftszeit
       var tdH = document.createElement("td");
       tdH.className = "tight";
-      var hbox = document.createElement("div");
-      hbox.className = "check";
-      var hcb = document.createElement("input");
-      hcb.type = "checkbox"; hcb.checked = !!g.harsi;
-      hcb.title = "Kommt zu Pesa"; hcb.setAttribute("aria-label","Kommt zu Pesa");
-      hbox.appendChild(hcb); tdH.appendChild(hbox); tr.appendChild(tdH);
+      var start = document.createElement("select");
+      start.className = "start" + (g.start ? "" : " off");
+      start.setAttribute("aria-label","Startet in");
+      STARTS.forEach(function(x){
+        var o = document.createElement("option");
+        o.value = x.k; o.textContent = x.l;
+        if(g.start === x.k) o.selected = true;
+        start.appendChild(o);
+      });
+      start.addEventListener("change", function(){
+        state.guests[id].start = start.value;
+        start.classList.toggle("off", !start.value);
+        save(); renderStats();
+      });
+      tdH.appendChild(start); tr.appendChild(tdH);
 
       var tdT = document.createElement("td");
       tdT.className = "tight";
       var time = document.createElement("input");
-      time.type = "time"; time.className = "tm" + (g.harsi ? "" : " off");
-      time.value = g.harsiTime || "";
-      time.setAttribute("aria-label","Ankunft bei Pesa");
+      time.type = "time"; time.className = "tm" + (g.startTime ? "" : " off");
+      time.value = g.startTime || "";
+      time.setAttribute("aria-label","Ankunft");
       time.addEventListener("input", function(){
-        state.guests[id].harsiTime = time.value;
-        // Eine Uhrzeit heisst: er kommt hin — Hackerl automatisch setzen.
-        if(time.value && !state.guests[id].harsi){
-          state.guests[id].harsi = true; hcb.checked = true; time.classList.remove("off");
-          renderStats();
-        }
+        state.guests[id].startTime = time.value;
+        time.classList.toggle("off", !time.value);
         save();
       });
       tdT.appendChild(time); tr.appendChild(tdT);
-
-      hcb.addEventListener("change", function(){
-        state.guests[id].harsi = hcb.checked;
-        time.classList.toggle("off", !hcb.checked);
-        save(); renderStats();
-      });
 
       // Auto + Info
       [["car","Braucht Auto"],["informed","Über Ablauf informiert"]].forEach(function(pair){
@@ -671,10 +678,10 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
   /* ---------------- Export ---------------- */
 
   function csv(){
-    var rows = [["Name","Zusage","Pesa","Ankunft Pesa","Braucht Auto","Informiert","Notiz","Tisch"]];
+    var rows = [["Name","Zusage","Startet in","Ankunft","Braucht Auto","Informiert","Notiz","Tisch"]];
     sortedIds().forEach(function(id){
       var g = state.guests[id];
-      rows.push([g.name, rsvpLabel[g.rsvp], g.harsi ? "ja" : "", g.harsiTime, g.car ? "ja" : "", g.informed ? "ja" : "",
+      rows.push([g.name, rsvpLabel[g.rsvp], (g.start ? startLabel[g.start] : ""), g.startTime, g.car ? "ja" : "", g.informed ? "ja" : "",
                  g.note, seats[id] || ""]);
     });
     return "﻿" + rows.map(function(r){
@@ -689,7 +696,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
     sortedIds().forEach(function(id){
       var g = state.guests[id];
       var flags = [];
-      if(g.harsi) flags.push("Pesa" + (g.harsiTime ? " " + g.harsiTime : ""));
+      if(g.start) flags.push("startet in " + startLabel[g.start] + (g.startTime ? ", " + g.startTime : ""));
       if(g.car) flags.push("braucht Auto");
       if(!g.informed) flags.push("noch nicht informiert");
       out.push(g.name + "  [" + rsvpLabel[g.rsvp] + "]" + (flags.length ? " — " + flags.join(", ") : ""));
