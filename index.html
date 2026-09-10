@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Sitzordnung Pesa: Tische, Plätze, Gäste.">
+<meta name="description" content="Sitzordnung Pesa: Tische, Plätze, Gäste, Gruppen.">
 <title>Tischplan Pesa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -119,6 +119,11 @@ textarea{resize:vertical;min-height:74px;line-height:1.45}
 .chip.sel .ghar{color:var(--on-accent);background:transparent;border:1px solid var(--on-accent)}
 .gcar{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--warn);background:var(--warn-soft);border-radius:9px;padding:1px 6px;flex:none}
 .chip.sel .gcar{color:var(--on-accent);background:transparent;border:1px solid var(--on-accent)}
+.grplabel{width:100%;margin:6px 0 0;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.grplabel:first-child{margin-top:0}
+.grplabel.plain{color:var(--ink-3)}
+.gdot{width:8px;height:8px;border-radius:50%;flex:none}
+.chip.sel .gdot{outline:1px solid var(--on-accent)}
 .poolempty{font-size:13px;color:var(--ink-3);padding:6px 2px}
 
 /* ---------- Tische ---------- */
@@ -261,6 +266,13 @@ dialog textarea{height:300px;font-family:"IBM Plex Mono",monospace;font-size:12.
         "N0ZPeVM5NUJZMzYzRVhSQ08="]
   };
 
+  var GRP_COLORS = ["#9A3A59","#1C6A5E","#5B5FBF","#A2661F","#3E7CA6","#7A4E9E","#46803A","#A03C3C"];
+  function grpColor(name){
+    var h = 0, n = String(name || "");
+    for(var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+    return GRP_COLORS[h % GRP_COLORS.length];
+  }
+
   var $ = function(s){ return document.querySelector(s); };
   var saveState = $("#saveState"), saveText = $("#saveText");
   var tablesEl = $("#tables"), poolChips = $("#poolChips"), poolEl = $("#pool");
@@ -287,6 +299,7 @@ dialog textarea{height:300px;font-family:"IBM Plex Mono",monospace;font-size:12.
       var g = s.guests[id] || {}, name = norm(g.name);
       if(!name) return;
       out.guests[id] = {name:name,
+                        grp: norm(g.grp),
                         start: g.start || ((g.harsi || g.group === "harsi") ? "harsi" : ""),
                         startTime: g.startTime || g.harsiTime || "",
                         rsvp: (g.rsvp === "yes" || g.rsvp === "no") ? g.rsvp : "open",
@@ -469,7 +482,12 @@ dialog textarea{height:300px;font-family:"IBM Plex Mono",monospace;font-size:12.
   function poolIds(idx){
     return Object.keys(state.guests)
       .filter(function(g){ return !idx[g] && state.guests[g].rsvp !== "no"; })
-      .sort(function(a,b){ return state.guests[a].name.localeCompare(state.guests[b].name,"de"); });
+      .sort(function(a,b){
+        var x = state.guests[a], y = state.guests[b];
+        if(!!x.grp !== !!y.grp) return x.grp ? -1 : 1;
+        if(x.grp !== y.grp) return x.grp.localeCompare(y.grp, "de");
+        return x.name.localeCompare(y.name, "de");
+      });
   }
   function occupied(t){ return (t.order||[]).filter(Boolean).length; }
 
@@ -600,12 +618,35 @@ dialog textarea{height:300px;font-family:"IBM Plex Mono",monospace;font-size:12.
       poolChips.appendChild(p);
       return;
     }
+    var lastGrp = null;
     ids.forEach(function(g){
       var name = state.guests[g].name;
+      var grp = state.guests[g].grp || "";
+      if(grp !== lastGrp){
+        var hadGroups = lastGrp !== null && lastGrp !== "";
+        lastGrp = grp;
+        if(grp){
+          var lab = document.createElement("p");
+          lab.className = "grplabel";
+          lab.style.color = grpColor(grp);
+          lab.textContent = grp;
+          poolChips.appendChild(lab);
+        } else if(hadGroups){
+          var lab2 = document.createElement("p");
+          lab2.className = "grplabel plain";
+          lab2.textContent = "Ohne Gruppe";
+          poolChips.appendChild(lab2);
+        }
+      }
       var chip = document.createElement("div");
       chip.className = "chip" + (selected === g ? " sel" : "") +
                        (filter && name.toLowerCase().indexOf(filter) < 0 ? " dim" : "");
       chip.draggable = true;
+      if(grp){
+        var gd = document.createElement("i");
+        gd.className = "gdot"; gd.style.background = grpColor(grp); gd.title = grp;
+        chip.appendChild(gd);
+      }
       var sp = document.createElement("span"); sp.textContent = name;
       chip.appendChild(sp);
       if(state.guests[g].start || state.guests[g].startTime){
@@ -696,7 +737,13 @@ dialog textarea{height:300px;font-family:"IBM Plex Mono",monospace;font-size:12.
           var nm = document.createElement("span"); nm.className = "who";
           nm.textContent = who ? state.guests[who].name : "frei";
           el.append(no, nm);
-          el.title = who ? state.guests[who].name + " — Platz " + (seat+1) : "Platz " + (seat+1) + " frei";
+          if(who && state.guests[who].grp){
+            el.style.borderColor = grpColor(state.guests[who].grp);
+            el.style.borderWidth = "2px";
+          }
+          el.title = who
+            ? state.guests[who].name + (state.guests[who].grp ? " · " + state.guests[who].grp : "") + " — Platz " + (seat+1)
+            : "Platz " + (seat+1) + " frei";
           if(who) el.draggable = true;
 
           function activate(){

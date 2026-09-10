@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="Gästeliste Pesa: Zusagen, Startpunkt, Auto, Ablauf.">
+<meta name="description" content="Gästeliste Pesa: Gruppen, Zusagen, Startpunkt, Auto, Ablauf.">
 <title>Gästeliste Pesa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,7 +91,7 @@ input::placeholder{color:var(--ink-3)}
 
 /* ---------- Tabelle ---------- */
 .tablewrap{margin-top:14px;overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:var(--shadow)}
-table{border-collapse:separate;border-spacing:0;width:100%;min-width:820px;font-size:14px}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:1080px;font-size:14px}
 th{
   position:sticky;top:0;z-index:2;text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;
   color:var(--ink-3);font-weight:600;background:var(--surface-2);padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;
@@ -100,8 +100,9 @@ td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
 tr:last-child td{border-bottom:0}
 tbody tr:hover td{background:var(--surface-2)}
 td.tight{width:1%;white-space:nowrap}
-td.mid{width:150px}
-td.wide{width:auto;min-width:240px}
+td.mid{width:170px;min-width:170px}
+td.wide{width:auto;min-width:200px}
+td.nm{width:200px;min-width:200px}
 .nm input{font-weight:600;border-color:transparent;background:transparent}
 .nm input:hover,.nm input:focus{border-color:var(--line-strong);background:var(--surface)}
 td input[type=text]{border-color:transparent;background:transparent}
@@ -126,6 +127,11 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:po
 .del:hover{background:var(--warn-soft);color:var(--warn)}
 .del.arm{background:var(--warn);color:var(--surface);font-size:11.5px;font-weight:600;padding:5px 9px}
 
+.grouprow td{background:var(--surface-2);padding:6px 10px;font-size:12px;letter-spacing:.04em}
+.grouprow td b{font-weight:600;text-transform:uppercase;letter-spacing:.07em}
+.grouprow td span{color:var(--ink-3);margin-left:10px}
+.grouprow td.plain b{color:var(--ink-3)}
+.grpin{flex:0 1 170px}
 .empty{margin:34px 0;text-align:center;color:var(--ink-2)}
 
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--ground);border-radius:10px;padding:10px 12px 10px 16px;display:flex;align-items:center;gap:12px;font-size:13.5px;box-shadow:0 8px 28px rgba(0,0,0,.28);z-index:50;max-width:92vw}
@@ -170,18 +176,21 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
   <div class="tools">
     <div class="addbox">
       <input id="guestInput" placeholder="Name eingeben — mehrere mit Komma oder Zeilenumbruch" autocomplete="off">
+      <input id="groupInput" class="grpin" placeholder="Gruppe (optional)" list="grouplist" autocomplete="off">
       <button id="guestAdd" class="primary">Aufnehmen</button>
     </div>
     <input id="search" class="search" placeholder="Suchen …" autocomplete="off">
     <div class="filters" id="filters"></div>
   </div>
-  <p class="hint">Änderungen werden sofort gespeichert. Doppelte Namen werden beim Aufnehmen erkannt.</p>
+  <datalist id="grouplist"></datalist>
+  <p class="hint">Gleiche Gruppe = untereinander und farblich zusammengefasst, auch im Tischplan. Änderungen werden sofort gespeichert. Doppelte Namen werden erkannt.</p>
 
   <div class="tablewrap">
     <table>
       <thead>
         <tr>
           <th>Name</th>
+          <th>Gruppe</th>
           <th>Zusage</th>
           <th>Startet in</th>
           <th>Ankunft</th>
@@ -229,6 +238,14 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
         "N0ZPeVM5NUJZMzYzRVhSQ08="]
   };
 
+  // Farbe je Gruppe: fest aus dem Namen abgeleitet, damit beide Seiten dieselbe zeigen.
+  var GRP_COLORS = ["#9A3A59","#1C6A5E","#5B5FBF","#A2661F","#3E7CA6","#7A4E9E","#46803A","#A03C3C"];
+  function grpColor(name){
+    var h = 0, n = String(name || "");
+    for(var i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+    return GRP_COLORS[h % GRP_COLORS.length];
+  }
+
   var STARTS = [{k:"",l:"—"},{k:"harsi",l:"Harsi tun"},{k:"kirche",l:"Kirche"},{k:"saal",l:"Saal"}];
   var startLabel = {"":"—", harsi:"Harsi tun", kirche:"Kirche", saal:"Saal"};
   var RSVP = [{k:"open",l:"offen"},{k:"yes",l:"zugesagt"},{k:"no",l:"abgesagt"}];
@@ -262,6 +279,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
     g = g || {};
     return {
       name: norm(g.name),
+      grp: norm(g.grp),
       start: (g.start && startLabel[g.start] !== undefined) ? g.start
              : ((g.harsi || g.group === "harsi") ? "harsi" : ""),
       startTime: /^\d{2}:\d{2}$/.test(g.startTime || g.harsiTime || "") ? (g.startTime || g.harsiTime) : "",
@@ -436,7 +454,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
     $("#toast").hidden = true; save(); render();
   });
 
-  function addGuests(text){
+  function addGuests(text, grp){
     var names = String(text).split(/[\n,;]+/).map(norm).filter(Boolean);
     if(!names.length) return;
     var have = {};
@@ -446,7 +464,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
     names.forEach(function(n){
       if(have[key(n)]){ dupes.push(n); return; }
       var id = gid();
-      state.guests[id] = normalizeGuest({name:n});
+      state.guests[id] = normalizeGuest({name:n, grp:grp || ""});
       have[key(n)] = true; added++; first = first || id;
     });
     save(); render();
@@ -471,15 +489,26 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
 
   function sortedIds(){
     return Object.keys(state.guests).sort(function(a,b){
-      return state.guests[a].name.localeCompare(state.guests[b].name, "de");
+      var x = state.guests[a], y = state.guests[b];
+      if(!!x.grp !== !!y.grp) return x.grp ? -1 : 1;         // Gruppen zuerst
+      if(x.grp !== y.grp) return x.grp.localeCompare(y.grp, "de");
+      return x.name.localeCompare(y.name, "de");
     });
+  }
+  function groupNames(){
+    var seen = {};
+    Object.keys(state.guests).forEach(function(id){
+      var g = state.guests[id].grp;
+      if(g) seen[g] = true;
+    });
+    return Object.keys(seen).sort(function(a,b){ return a.localeCompare(b,"de"); });
   }
   function visible(id){
     var g = state.guests[id];
     var f = FILTERS.filter(function(x){ return x.k === filter; })[0];
     if(f && !f.fn(g, seats[id])) return false;
     if(search){
-      var hay = (g.name + " " + g.note + " " + startLabel[g.start] + " " + g.startTime).toLowerCase();
+      var hay = (g.name + " " + g.grp + " " + g.note + " " + startLabel[g.start] + " " + g.startTime).toLowerCase();
       if(hay.indexOf(search) < 0) return false;
     }
     return true;
@@ -542,10 +571,45 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
 
   function renderRows(){
     tbody.textContent = "";
-    sortedIds().forEach(function(id){
-      if(!visible(id)) return;
+    var dl = $("#grouplist");
+    dl.textContent = "";
+    groupNames().forEach(function(n){
+      var o = document.createElement("option"); o.value = n; dl.appendChild(o);
+    });
+
+    var shown = sortedIds().filter(visible);
+    var counts = {};
+    shown.forEach(function(id){ var k = state.guests[id].grp || ""; counts[k] = (counts[k] || 0) + 1; });
+    var lastGrp = null;
+
+    shown.forEach(function(id){
       var g = state.guests[id];
+      var key = g.grp || "";
+      if(key !== lastGrp){
+        lastGrp = key;
+        if(key || Object.keys(counts).length > 1){
+          var hr = document.createElement("tr");
+          hr.className = "grouprow";
+          var hc = document.createElement("td");
+          hc.colSpan = 9;
+          if(key){
+            hc.style.borderLeft = "4px solid " + grpColor(key);
+            var nm2 = document.createElement("b"); nm2.textContent = key;
+            var ct = document.createElement("span");
+            ct.textContent = counts[key] + (counts[key] === 1 ? " Person" : " Personen");
+            hc.append(nm2, ct);
+          } else {
+            hc.className = "plain";
+            var nm3 = document.createElement("b"); nm3.textContent = "Ohne Gruppe";
+            var ct3 = document.createElement("span");
+            ct3.textContent = counts[key] + (counts[key] === 1 ? " Person" : " Personen");
+            hc.append(nm3, ct3);
+          }
+          hr.appendChild(hc); tbody.appendChild(hr);
+        }
+      }
       var tr = document.createElement("tr");
+      if(g.grp) tr.style.boxShadow = "inset 4px 0 0 " + grpColor(g.grp);
       tr.setAttribute("data-id", id);
       tr.setAttribute("data-rsvp", g.rsvp);
 
@@ -566,6 +630,19 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
       });
       tdName.appendChild(name);
       tr.appendChild(tdName);
+
+      // Gruppe
+      var tdG = document.createElement("td");
+      tdG.className = "mid";
+      var grpIn = document.createElement("input");
+      grpIn.type = "text"; grpIn.value = g.grp; grpIn.placeholder = "—";
+      grpIn.setAttribute("list","grouplist"); grpIn.setAttribute("aria-label","Gruppe");
+      grpIn.addEventListener("input", function(){ state.guests[id].grp = grpIn.value; save(); });
+      grpIn.addEventListener("blur", function(){
+        state.guests[id].grp = norm(grpIn.value); save(); render();
+      });
+      tdG.appendChild(grpIn);
+      tr.appendChild(tdG);
 
       // Zusage
       var tdR = document.createElement("td");
@@ -666,7 +743,8 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
   /* ---------------- Bedienung ---------------- */
 
   $("#guestAdd").addEventListener("click", function(){
-    addGuests($("#guestInput").value); $("#guestInput").value = "";
+    addGuests($("#guestInput").value, $("#groupInput").value);
+    $("#guestInput").value = ""; $("#guestInput").focus();
   });
   $("#guestInput").addEventListener("keydown", function(ev){
     if(ev.key === "Enter"){ ev.preventDefault(); $("#guestAdd").click(); }
@@ -678,10 +756,10 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
   /* ---------------- Export ---------------- */
 
   function csv(){
-    var rows = [["Name","Zusage","Startet in","Ankunft","Braucht Auto","Über Ablauf informiert","Notiz","Tisch"]];
+    var rows = [["Name","Gruppe","Zusage","Startet in","Ankunft","Braucht Auto","Über Ablauf informiert","Notiz","Tisch"]];
     sortedIds().forEach(function(id){
       var g = state.guests[id];
-      rows.push([g.name, rsvpLabel[g.rsvp], (g.start ? startLabel[g.start] : ""), g.startTime, g.car ? "ja" : "", g.informed ? "ja" : "",
+      rows.push([g.name, g.grp, rsvpLabel[g.rsvp], (g.start ? startLabel[g.start] : ""), g.startTime, g.car ? "ja" : "", g.informed ? "ja" : "",
                  g.note, seats[id] || ""]);
     });
     return "﻿" + rows.map(function(r){
@@ -699,7 +777,7 @@ dialog textarea{width:100%;height:300px;font-family:"IBM Plex Mono",monospace;fo
       if(g.start) flags.push("startet in " + startLabel[g.start] + (g.startTime ? ", " + g.startTime : ""));
       if(g.car) flags.push("braucht Auto");
       if(!g.informed) flags.push("noch nicht informiert");
-      out.push(g.name + "  [" + rsvpLabel[g.rsvp] + "]" + (flags.length ? " — " + flags.join(", ") : ""));
+      out.push(g.name + (g.grp ? " (" + g.grp + ")" : "") + "  [" + rsvpLabel[g.rsvp] + "]" + (flags.length ? " — " + flags.join(", ") : ""));
       if(g.note)   out.push("    Notiz: " + g.note);
       if(seats[id])out.push("    Tisch: " + seats[id]);
     });
